@@ -4,7 +4,7 @@
 #include "../shell.h"
 #include "../node.h"
 #include "../parser.h"
-#include "symtab.h"
+#include "symboltable.h"
 
 
 struct symtab_stack_s symtab_stack;
