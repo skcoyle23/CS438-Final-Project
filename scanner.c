@@ -7,7 +7,7 @@
 #include "source.h"
 
 char *tokenIn = NULL; // Pointer to buffer; stores current token
-int tokenInSize  = 0; // Number of bytes allocated to the buffer
+int tokenInSize = 0; // Number of bytes allocated to the buffer
 int tokenInIndex = -1; // Current buffer index; tells where to add next input char
 
 // Initializing special token to signal end of input
@@ -79,7 +79,7 @@ void freeToken(struct tokenInput *tok) {
 
 
 struct tokenInput *tokenize(struct abstractInput *src) {
-    int  endLoop = 0;
+    int endLoop = 0;
 
 	// Empty data error, returns end token
     if(!src || !src->input || !src->inSize) {
@@ -119,7 +119,7 @@ struct tokenInput *tokenize(struct abstractInput *src) {
             case ' ':
             case '\t':
                 if(tokenInIndex > 0) {
-                    endloop = 1;
+                    endLoop = 1;
                 }
                 break;
                 
@@ -131,7 +131,7 @@ struct tokenInput *tokenize(struct abstractInput *src) {
                     addBuf(next);
                 }
                 
-                endloop = 1;
+                endLoop = 1;
                 break;
                 
             default:
@@ -139,7 +139,7 @@ struct tokenInput *tokenize(struct abstractInput *src) {
                 break;
         }
 
-        if(endloop) {
+        if(endLoop) {
             break;
         }
 
@@ -155,8 +155,8 @@ struct tokenInput *tokenize(struct abstractInput *src) {
     }
     tokenIn[tokenInIndex] = '\0';
 
-	// Called after we have out token
-    struct tokenInput *tok = createToken(tokenInSize);
+	// Called after we have our token
+    struct tokenInput *tok = createToken(tokenIn);
     
     
     // Prints error statement

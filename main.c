@@ -3,6 +3,9 @@
 #include <errno.h>
 #include <string.h>
 #include "shell.h"
+#include "source.h"
+#include "parser.h"
+#include "executor.h"
 
 int main(int argc, char **argv) {
     
@@ -30,7 +33,12 @@ int main(int argc, char **argv) {
             break;
         }
         
-        printf("%s\n", input);
+        //printf("%s\n", input);
+        struct abstractInput src;
+        src.input = input;
+        src.inSize = strlen(input);
+        src.currentPos = INIT_SRC_POS;
+        parseAndExecute(&src);
 
         free(input);
     } while(1);
@@ -102,4 +110,32 @@ char *read_input(void){
         pointerLength += inLength;
     }
     return pointer;
+}
+
+/*
+* Parses and executes simple commands; one at a time until input is consumed
+*/
+int parseAndExecute(struct abstractInput *src) {
+    
+    skipSpaces(src); // Checks for leading white spaces
+
+    struct tokenInput *tok = tokenize(src);
+
+    if(tok == &endToken) {
+        return 0;
+    }
+
+    while(tok && tok != &endToken) {
+        struct nodeSource *input = parseSimpleCommand(tok);
+
+        if(!input) {
+            break;
+        }
+
+        executeSimpleCom(input);
+        freeNodeTree(input);
+        tok = tokenize(src);
+    }
+
+    return 1;
 }

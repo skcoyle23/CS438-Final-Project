@@ -6,4 +6,7 @@ void print_prompt2(void);
 
 char *read_input(void);
 
+#include "source.h"
+int parseAndExecute(struct abstractInput *src);
+
 #endif

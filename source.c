@@ -14,7 +14,7 @@ char nextChar(struct abstractInput *src) {
     if(!src || !src-> input) {
     // Taken from the errno.h file; indicates an error occurred during a function call
         errno = ENODATA; 
-        return ERRORCHAR; // Returns 0 if an error exists
+        return ERRCHAR; // Returns 0 if an error exists
     }
 
     char char1 = 0; // Starting position
@@ -84,6 +84,6 @@ void skipSpaces(struct abstractInput *src) {
 
     while(((c = checkChar(src)) != LASTCHAR) && (c == ' ' || c == '\t'))
     {
-        next_char(src);
+        nextChar(src);
     }
 }
