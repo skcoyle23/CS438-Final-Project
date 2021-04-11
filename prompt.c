@@ -2,24 +2,18 @@
 #include "shell.h"
 
 /*
+* Prints the first prompt string
+* Seen when the shell is waiting for a command to be entered
+*/
 void print_prompt1(void) {
-	fprintf(stderr, "$ ");
-} */
-
-void print_prompt1(void)
-{   
-    struct symtab_entry_s *entry = get_symtab_entry("PS1");
-
-    if(entry && entry->val)
-    {
-        fprintf(stderr, "%s", entry->val);
-    }
-    else
-    {
-        fprintf(stderr, "$ ");
-    }
+    fprintf(stderr, "$ ");
 }
 
+
+/*
+* Prints the second prompt string
+* Printed by the shell for a multi-line command
+*/
 void print_prompt2(void) {
-	fprintf(stderr, "> ");
+    fprintf(stderr, "> ");
 }
