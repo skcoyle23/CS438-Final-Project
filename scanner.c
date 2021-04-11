@@ -6,157 +6,163 @@
 #include "scanner.h"
 #include "source.h"
 
-char *tok_buf = NULL;
-int   tok_bufsize  = 0;
-int   tok_bufindex = -1;
+char *tokenIn = NULL; // Pointer to buffer; stores current token
+int tokenInSize  = 0; // Number of bytes allocated to the buffer
+int tokenInIndex = -1; // Current buffer index; tells where to add next input char
 
-/* special token to indicate end of input */
-struct token_s eof_token = 
-{
-    .text_len = 0,
+// Initializing special token to signal end of input
+struct tokenInput endToken = {
+    .textLength = 0,
 };
 
+/*
+* Adds a single character to the token buffer
+*/
+void addBuf(char c) {
+    tokenIn[tokenInIndex++] = c;
 
-void add_to_buf(char c)
-{
-    tok_buf[tok_bufindex++] = c;
+// If buffer is full, function extends size
+    if(tokenInIndex >= tokenInSize) {
+        char *newSize = realloc(tokenIn, tokenInSize*2);
 
-    if(tok_bufindex >= tok_bufsize)
-    {
-        char *tmp = realloc(tok_buf, tok_bufsize*2);
-
-        if(!tmp)
-        {
-            errno = ENOMEM;
+	// Error checking
+        if(!newSize) {
+            errno = ENOMEM; // Out of memory error
             return;
         }
 
-        tok_buf = tmp;
-        tok_bufsize *= 2;
+        tokenIn = newSize;
+        tokenInSize *= 2;
     }
 }
 
-
-struct token_s *create_token(char *str)
-{
-    struct token_s *tok = malloc(sizeof(struct token_s));
+/*
+* Takes a string and converts it to a struct tokenInput structure
+*/
+struct tokenInput *createToken(char *str) {
+    struct tokenInput *tok = malloc(sizeof(struct tokenInput)); 
     
-    if(!tok)
-    {
+    if(!tok) {
         return NULL;
     }
 
-    memset(tok, 0, sizeof(struct token_s));
-    tok->text_len = strlen(str);
+// Copies the character to the first n characters of the string pointed to
+    memset(tok, 0, sizeof(struct tokenInput));
     
-    char *nstr = malloc(tok->text_len+1);
+    // Sets token to length of token text
+    tok-> textLength = strlen(str);
     
-    if(!nstr)
-    {
+    char *newStr = malloc(tok->textLength+1); // New memory allocation
+    
+    if(!newStr) {
         free(tok);
         return NULL;
     }
     
-    strcpy(nstr, str);
-    tok->text = nstr;
+    strcpy(newStr, str); // Copies new string and original string
+    tok->text = newStr; // Sets text of token equal to new string
     
     return tok;
 }
 
 
-void free_token(struct token_s *tok)
-{
-    if(tok->text)
-    {
+/*
+* Frees memory used by token structure
+*/
+void freeToken(struct tokenInput *tok) {
+    if(tok->text) {
         free(tok->text);
     }
+    
     free(tok);
 }
 
 
-struct token_s *tokenize(struct source_s *src)
-{
-    int  endloop = 0;
+struct tokenInput *tokenize(struct abstractInput *src) {
+    int  endLoop = 0;
 
-    if(!src || !src->buffer || !src->bufsize)
-    {
+	// Empty data error, returns end token
+    if(!src || !src->input || !src->inSize) {
         errno = ENODATA;
-        return &eof_token;
+        return &endToken;
     }
     
-    if(!tok_buf)
-    {
-        tok_bufsize = 1024;
-        tok_buf = malloc(tok_bufsize);
-        if(!tok_buf)
-        {
+    if(!tokenIn)  {
+        tokenInSize = 2048;
+        tokenIn = malloc(tokenInSize); // Allocates memory for token buffer
+        
+        // No memory error, returns end token
+        if(!tokenIn)  {
             errno = ENOMEM;
-            return &eof_token;
+            return &endToken;
         }
     }
 
-    tok_bufindex     = 0;
-    tok_buf[0]       = '\0';
+    tokenInIndex = 0;
+    tokenIn[0] = '\0';
 
-    char nc = next_char(src);
+    char next = nextChar(src);
 
-    if(nc == ERRCHAR || nc == EOF)
-    {
-        return &eof_token;
+	// Checking if there are still characters to be read, returns end token if not 
+    if(next == ERRCHAR || next == LASTCHAR) {
+        return &endToken;
     }
 
-    do
-    {
-        switch(nc)
-        {
+// Reads input characters one at a time
+/*
+* Looks for whitespace characters 
+* If buffer is not empty, delimit the current token and break out of loop
+* Default skips the whitespace characters and move to beginning of next token
+*/
+    do {
+        switch(next) {
             case ' ':
             case '\t':
-                if(tok_bufindex > 0)
-                {
+                if(tokenInIndex > 0) {
                     endloop = 1;
                 }
                 break;
                 
             case '\n':
-                if(tok_bufindex > 0)
-                {
-                    unget_char(src);
+                if(tokenInIndex > 0) {
+                    previousChar(src);
                 }
-                else
-                {
-                    add_to_buf(nc);
+                else {
+                    addBuf(next);
                 }
+                
                 endloop = 1;
                 break;
                 
             default:
-                add_to_buf(nc);
+                addBuf(next);
                 break;
         }
 
-        if(endloop)
-        {
+        if(endloop) {
             break;
         }
 
-    } while((nc = next_char(src)) != EOF);
+    } while((next = nextChar(src)) != LASTCHAR);
 
-    if(tok_bufindex == 0)
-    {
-        return &eof_token;
+	// When index is 0, return end
+    if(tokenInIndex == 0) {
+        return &endToken;
     }
     
-    if(tok_bufindex >= tok_bufsize)
-    {
-        tok_bufindex--;
+    if(tokenInIndex >= tokenInSize) {
+        tokenInIndex--;
     }
-    tok_buf[tok_bufindex] = '\0';
+    tokenIn[tokenInIndex] = '\0';
 
-    struct token_s *tok = create_token(tok_buf);
-    if(!tok)
-    {
+	// Called after we have out token
+    struct tokenInput *tok = createToken(tokenInSize);
+    
+    
+    // Prints error statement
+    if(!tok)  {
         fprintf(stderr, "error: failed to alloc buffer: %s\n", strerror(errno));
-        return &eof_token;
+        return &endToken;
     }
 
     tok->src = src;
