@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <string.h>
 #include "shell.h"
+#include "symtab/symtab.h"
 
 
 void init_shell() {
@@ -87,3 +88,5 @@ char *read_cmd(void) {
 
 	return ptr;
 }
+
+initsh();
