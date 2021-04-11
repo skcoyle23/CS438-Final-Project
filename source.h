@@ -1,9 +1,9 @@
 #ifndef SOURCE_H
 #define SOURCE_H
 
-#define LASTCHAR(-1)
-#define ERRORCHAR(0)
-#define INIT_SRC_POS(-2)
+#define LASTCHAR	(-1)
+#define ERRCHAR	(0)
+#define INIT_SRC_POS	(-2)
 
 /*
 * Makes the job of the scanner easier
