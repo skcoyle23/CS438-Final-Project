@@ -9,7 +9,6 @@ void print_prompt1(void) {
     fprintf(stderr, "$ ");
 }
 
-
 /*
 * Prints the second prompt string
 * Printed by the shell for a multi-line command
